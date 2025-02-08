@@ -44,7 +44,7 @@ impl Record {
     }
 
     pub fn with_string(topic: impl Into<String>, payload: impl AsRef<str>) -> Self {
-        Self::s(topic, payload.as_ref().as_bytes())
+        Self::new(topic, payload.as_ref().as_bytes().to_vec())
     }
 
     pub fn with_json<T: Serialize>(topic: impl Into<String>, payload: &T) -> Result<Self, Error> {
@@ -60,7 +60,7 @@ impl Record {
     }
 
     pub fn with_string_key(self, key: impl AsRef<str>) -> Self {
-        self.with_key(key.as_ref().as_bytes())
+        self.with_key(key.as_ref().as_bytes().to_vec())
     }
 
     pub fn with_json_key<T: Serialize>(self, key: &T) -> Result<Self, Error> {
