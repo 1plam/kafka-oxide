@@ -3,7 +3,7 @@
 An ergonomic and type-safe Rust wrapper for Apache Kafka and Redpanda, designed for a seamless developer experience with
 safety in mind.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > This project is currently under development and may not work as intended. Stay tuned for updates and improvements.
 
 ## Features
@@ -78,11 +78,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## License
+_This project is licensed under [Apache License, Version 2.0](.github/LICENSE)_
 
-This project is licensed under either of
-
-* [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-* [MIT license](http://opensource.org/licenses/MIT) 
-
-at your option.
