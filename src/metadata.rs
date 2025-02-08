@@ -1,5 +1,5 @@
-use rdkafka::metadata::{Metadata, MetadataBroker};
-use rdkafka::statistics::Topic;
+use rdkafka::metadata::{Metadata, MetadataBroker, MetadataTopic};
+use rdkafka::statistics::Partition;
 use rdkafka::types::RDKafkaRespErr;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +15,23 @@ impl From<RDKafkaRespErr> for KafkaError {
 fn convert_kafka_error(err: Option<RDKafkaRespErr>) -> Option<KafkaError> {
     err.map(KafkaError::from)
 }
+
+pub struct Topic {
+    pub name: String,
+    pub partitions: Vec<Partition>,
+    pub error: Option<KafkaError>,
+}
+
+impl From<&MetadataTopic> for Topic {
+    fn from(t: &MetadataTopic) -> Self {
+        Self {
+            name: t.name().to_owned(),
+            partitions: t.partitions().iter().map(Into::into).collect(),
+            error: convert_kafka_error(t.error()),
+        }
+    }
+}
+
 
 pub struct ClusterMetadata {
     pub orig_broker_id: i32,
