@@ -11,3 +11,11 @@ pub type AdminResult<T> = Result<T, Error>;
 pub struct AdminClient {
     pub(crate) admin_client: Arc<DefaultAdminClient>,
 }
+
+impl std::fmt::Debug for AdminClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AdminClient")
+            .field("admin_client", &"<admin_client>")
+            .finish()
+    }
+}
