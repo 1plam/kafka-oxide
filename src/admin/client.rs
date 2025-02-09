@@ -25,6 +25,7 @@ impl AdminClient {
         })
     }
 
+    #[instrument(skip(self))]
     pub async fn create_topic(
         &self,
         name: &str,
@@ -66,6 +67,7 @@ impl AdminClient {
         }
     }
 
+    #[instrument(skip(self))]
     pub async fn delete_topic(&self, name: &str) -> AdminResult<()> {
         let opts = AdminOptions::new();
 
