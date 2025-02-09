@@ -1,5 +1,6 @@
 use super::types::{AdminClient, AdminResult, DefaultAdminClient};
 use rdkafka::admin::{AdminOptions, NewTopic, ResourceSpecifier};
+use rdkafka::error::KafkaError;
 use std::sync::Arc;
 use tracing::{event, instrument, Level};
 
@@ -31,17 +32,37 @@ impl AdminClient {
         replication_factor: u16,
     ) -> AdminResult<()> {
         let opts = AdminOptions::new();
+        let replication = rdkafka::admin::TopicReplication::Fixed(replication_factor.into());
+        let config = vec![
+            ("compression.type", "zstd"),
+            ("auto.offset.reset", "beginning"),
+        ];
+
         let topic = NewTopic {
             name,
             num_partitions: num_partitions.into(),
-            replication: rdkafka::admin::TopicReplication::Fixed(replication_factor.into()),
-            config: vec![
-                ("compression.type", "zstd"),
-                ("auto.offset.reset", "beginning"),
-            ],
+            replication,
+            config,
         };
 
-        self.admin_client.create_topics([&topic], &opts).await?;
-        Ok(())
+        match self.admin_client.create_topics([&topic], &opts).await {
+            Ok(results_vec) => match &results_vec[0] {
+                Ok(_) => {
+                    event!(
+                        Level::INFO,
+                        "Created topic {} with {} partitions, replication factor {}",
+                        name,
+                        num_partitions,
+                        replication_factor
+                    );
+                    Ok(())
+                }
+                Err(e) => {
+                    event!(Level::ERROR, "Failed to create topic {}, {:?}", e.0, e.1);
+                    Err(KafkaError::AdminOp(e.1).into())
+                }
+            },
+            Err(e) => Err(e.into()),
+        }
     }
 }
