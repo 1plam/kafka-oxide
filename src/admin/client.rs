@@ -65,4 +65,22 @@ impl AdminClient {
             Err(e) => Err(e.into()),
         }
     }
+
+    pub async fn delete_topic(&self, name: &str) -> AdminResult<()> {
+        let opts = AdminOptions::new();
+
+        match self.admin_client.delete_topics(&[name], &opts).await {
+            Ok(results_vec) => match &results_vec[0] {
+                Ok(deleted_name) => {
+                    event!(Level::INFO, "Deleted topic {}", deleted_name);
+                    Ok(())
+                }
+                Err(e) => {
+                    event!(Level::ERROR, "Failed to delete topic {}, {:?}", e.0, e.1);
+                    Err(KafkaError::AdminOp(e.1).into())
+                }
+            },
+            Err(e) => Err(e.into()),
+        }
+    }
 }
