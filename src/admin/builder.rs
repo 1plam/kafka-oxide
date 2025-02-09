@@ -14,6 +14,7 @@ impl AdminClientBuilder {
     }
 
     pub fn bootstrap_servers(mut self, servers: &[&str]) -> Self {
+        assert!(!servers.is_empty(), "Bootstrap servers list cannot be empty");
         self.config.set("bootstrap.servers", servers.join(","));
         self
     }
