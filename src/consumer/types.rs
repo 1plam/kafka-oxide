@@ -1,17 +1,20 @@
-use crate::error::RecordError;
+use crate::error::{Error, RecordError};
 use rdkafka::message::BorrowedHeaders;
 use rdkafka::{
     consumer::ConsumerContext as RDKafkaConsumerContext,
     message::{BorrowedMessage, Message},
     ClientContext,
 };
+use serde::de::DeserializeOwned;
 
+/// Consumer context that emits tracing events
 #[derive(Clone)]
 pub struct ConsumerContext;
 
 impl ClientContext for ConsumerContext {}
 impl RDKafkaConsumerContext for ConsumerContext {}
 
+/// A consumed message from Kafka
 #[derive(Debug)]
 pub struct ConsumerMessage<'a> {
     inner: BorrowedMessage<'a>,
@@ -46,7 +49,7 @@ impl<'a> ConsumerMessage<'a> {
         self.inner.headers()
     }
 
-    pub fn payload_string(&self) -> Result<String, RecordError> {
+    pub fn payload_string(&self) -> Result<String, Error> {
         let payload = self
             .payload()
             .ok_or_else(|| RecordError::MissingField("payload".to_string()))?;
@@ -55,12 +58,12 @@ impl<'a> ConsumerMessage<'a> {
             .map_err(|e| RecordError::ValueDeserialize(e.to_string()).into())
     }
 
-    pub fn payload_json(&self) -> Result<serde_json::Value, RecordError> {
+    pub fn payload_json<T: DeserializeOwned + 'static>(&self) -> Result<T, Error> {
         let payload = self
             .payload()
             .ok_or_else(|| RecordError::MissingField("payload".to_string()))?;
 
-        serde_json::from_slice(payload).map_err(|e| RecordError::Json(e).into())
+        serde_json::from_slice::<T>(payload).map_err(|e| RecordError::Json(e).into())
     }
 
     pub fn inner(&self) -> &BorrowedMessage<'a> {
